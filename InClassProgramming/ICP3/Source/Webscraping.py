@@ -22,9 +22,10 @@ table = parseSoup.find("table", { "class" : "wikitable sortable plainrowheaders"
 for row in table.findAll('tr'):
     for column in row.findAll('td'):
 
-        columnData = column.text
 # print the column data
-        print(columnData)
+columnData = column.text
+print(columnData)
+
 # print the row data
 rowData = row.find('th')
 print(rowData.text)
