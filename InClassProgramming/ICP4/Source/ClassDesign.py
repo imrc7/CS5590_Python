@@ -26,18 +26,18 @@ class Fulltime(classEmployee):
 
 # Creating objects of the parent class Employee
 
-emplpoyee1=classEmployee("Revanth","Chakilam",1000,"IT")
-emplpoyee2=classEmployee("Swathi","Singh",1500,"HR")
-emplpoyee3=classEmployee("Sravya","Topper",2000,"Development")
+employee1=classEmployee("Revanth","Chakilam",1000,"IT")
+employee2=classEmployee("Swathi","Singh",1500,"HR")
+employee3=classEmployee("Sravya","Topper",2000,"Development")
 
 # Creating objects of the Child class Fulltime
-emplpoyee4=Fulltime("Vineeth","Reddy",3000,"Recruitment")
+employee4=Fulltime("Vineeth","Reddy",3000,"Recruitment")
 
 # Calling member functions of the employee class
-emplpoyee1.display()
+employee1.display()
 
 # Calling member functions of the Full time class
-emplpoyee4.display()
+employee4.display()
 
 # Calculating count of employees
 print("Total number of employees:", classEmployee.empcount)
