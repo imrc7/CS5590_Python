@@ -30,16 +30,14 @@ plt.scatter(centroids[:, 0],centroids[:, 1], marker = "x", s=150, linewidths = 5
 
 plt.show()
 
-# Elbow Method - Technique to determine the K
-#
+-------------- Bonus elbow method (http://www.scikit-yb.org/en/latest/api/cluster/elbow.html)
+# Elbow Method - Technique to determine the best value for K
 # Plot a line graph of the SSE for each value of k.
 # If the line graph looks like an arm - a red circle in below line graph (like angle),
 # the "elbow" on the arm is the value of optimal k (number of cluster).
 # Here, we want to minimize SSE. SSE tends to decrease toward 0 as we increase k
-# (and SSE is 0 when k is equal to the number of data points in the dataset,
 # because then each data point is its own cluster, and there is no error between it and the center of its cluster).
-# So the goal is to choose a small value of k that still has a low SSE, and the elbow usually represents
-# where we start to have diminishing returns by increasing k.
+# So the goal is to choose a small value of k that still has a low SSE, and the elbow usually represents where we start to have diminishing returns by increasing k.
 
 
 
@@ -48,7 +46,7 @@ temp = {}
 for k in range(1,5):
     kmeans = KMeans(n_clusters=k).fit(X)
 
-# to find distances
+# to find distances we use inertia
     temp[k] = kmeans.inertia_
 
 plt.plot(list(temp.keys()), list(temp.values()))
