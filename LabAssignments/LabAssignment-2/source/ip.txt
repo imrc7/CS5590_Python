@@ -1,0 +1,2 @@
+The core features of the Spring Framework can be used in developing any Java application
+It enables a POJO based programming model.
