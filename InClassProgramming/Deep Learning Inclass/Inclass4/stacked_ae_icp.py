@@ -1,8 +1,6 @@
 """ Auto Encoder Example.
-
 Build a 2 layers auto-encoder with TensorFlow to compress images to a
 lower latent space and then reconstruct them.
-
 """
 from __future__ import division, print_function, absolute_import
 
@@ -17,33 +15,32 @@ mnist = input_data.read_data_sets("MNIST_data", one_hot=True)
 
 # Training Parameters
 learning_rate = 0.01
-num_steps = 600
+num_steps = 500
 batch_size = 256
 
-display_step = 1000
+display_step = 100
 examples_to_show = 10
 
 # Network Parameters
 num_hidden_1 = 256  # 1st layer num features
 num_hidden_2 = 128  # 2nd layer num features (the latent dim)
-num_hidden_3 = 64  # 3rd layer num features (the latent dim)
 num_input = 784  # MNIST data input (img shape: 28*28)
 
 # tf Graph input (only pictures)
 X = tf.placeholder("float", [None, num_input])
-Y = tf.placeholder("float", [None, 10])
+
 weights = {
     'encoder_h1': tf.Variable(tf.random_normal([num_input, num_hidden_1])),
     'encoder_h2': tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])),
-    'encoder_h3': tf.Variable(tf.random_normal([num_hidden_2, num_hidden_3])),
-    'decoder_h1': tf.Variable(tf.random_normal([num_hidden_3, num_hidden_2])),
+    'encoder_h3': tf.Variable(tf.random_normal([num_hidden_2, num_hidden_1])),
+    'decoder_h1': tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])),
     'decoder_h2': tf.Variable(tf.random_normal([num_hidden_2, num_hidden_1])),
     'decoder_h3': tf.Variable(tf.random_normal([num_hidden_1, num_input])),
 }
 biases = {
     'encoder_b1': tf.Variable(tf.random_normal([num_hidden_1])),
     'encoder_b2': tf.Variable(tf.random_normal([num_hidden_2])),
-    'encoder_b3': tf.Variable(tf.random_normal([num_hidden_3])),
+    'encoder_b3': tf.Variable(tf.random_normal([num_hidden_1])),
     'decoder_b1': tf.Variable(tf.random_normal([num_hidden_2])),
     'decoder_b2': tf.Variable(tf.random_normal([num_hidden_1])),
     'decoder_b3': tf.Variable(tf.random_normal([num_input])),
@@ -58,6 +55,7 @@ def encoder(x):
     # Encoder Hidden layer with sigmoid activation #2
     layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weights['encoder_h2']),
                                    biases['encoder_b2']))
+    # Encoder Hidden layer with sigmoid activation #3
     layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, weights['encoder_h3']),
                                    biases['encoder_b3']))
     return layer_3
@@ -71,7 +69,7 @@ def decoder(x):
     # Decoder Hidden layer with sigmoid activation #2
     layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weights['decoder_h2']),
                                    biases['decoder_b2']))
-
+    # Decoder Hidden layer with sigmoid activation #3
     layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, weights['decoder_h3']),
                                    biases['decoder_b3']))
     return layer_3
@@ -88,25 +86,19 @@ y_true = X
 
 # Define loss and optimizer, minimize the squared error
 loss = tf.reduce_mean(tf.pow(y_true - y_pred, 2))
-#optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(loss)
-optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss)
-#optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
-#optimizer = tf.train.AdagradOptimizer(learning_rate).minimize(loss)
+optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(loss)
 
 # Initialize the variables (i.e. assign their default value)
 init = tf.global_variables_initializer()
-batch_xs, batch_ys = mnist.train.next_batch(128)
+
 # Start Training
 # Start a new TF session
 with tf.Session() as sess:
     # Run the initializer
-    sess.run(tf.global_variables_initializer())
-
-    writer = tf.summary.FileWriter('./graphs2/MNIST_data', sess.graph)
-    tf.summary.scalar("loss", loss)
-    merged_sum_op = tf.summary.merge_all()
-    summary_writer = tf.summary.FileWriter('./graphs4/MNIST_data', sess.graph)
     sess.run(init)
+    writer= tf.summary.FileWriter("./graphs",sess.graph)
+
+
 
     # Training
     for i in range(1, num_steps + 1):
@@ -116,12 +108,6 @@ with tf.Session() as sess:
 
         # Run optimization op (backprop) and cost op (to get loss value)
         _, l = sess.run([optimizer, loss], feed_dict={X: batch_x})
-        # Run optimization op (backprop), cost op (to get loss value)
-        # and summary nodes
-        _, c, summary = sess.run([optimizer, loss, merged_sum_op],
-                                 feed_dict={X: batch_xs, Y: batch_ys})
-        # Write logs at every iteration
-        summary_writer.add_summary(summary, i)
         # Display logs per step
         if i % display_step == 0 or i == 1:
             print('Step %i: Minibatch Loss: %f' % (i, l))
@@ -157,3 +143,36 @@ with tf.Session() as sess:
     plt.figure(figsize=(n, n))
     plt.imshow(canvas_recon, origin="upper", cmap="gray")
     plt.show()
+
+tf.summary.scalar("loss", loss)
+
+with tf.Session() as sess:
+    sess.run(init)
+    writer = tf.summary.FileWriter("./graphs", sess.graph)
+
+
+    merged_summary_op = tf.summary.merge_all()
+    # op to write logs to Tensorboard
+    summary_writer = tf.summary.FileWriter("./summgraph", graph=tf.get_default_graph())
+    training_epochs=5
+    display_epoch=1
+    # Training cycle
+    for epoch in range(training_epochs):
+        avg_cost = 0.
+        total_batch = int(mnist.train.num_examples/batch_size)
+        # Loop over all batches
+        for i in range(total_batch):
+            batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+            # Run optimization op (backprop), cost op (to get loss value)
+            # and summary nodes
+            _, c, summary = sess.run([optimizer, loss, merged_summary_op],
+                                     feed_dict={X: batch_xs})
+            # Write logs at every iteration
+            summary_writer.add_summary(summary, epoch * total_batch + i)
+            # Compute average loss
+            avg_cost += c / total_batch
+        # Display logs per epoch step
+        if (epoch+1) % display_epoch == 0:
+            print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(avg_cost))
+
+    print("Optimization Finished!")
